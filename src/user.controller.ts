@@ -1,7 +1,6 @@
-import { RmqService } from "@app/common/rmq/rmq.service"
 import { UserMeUpdateType } from "@app/common/schemas/auth/types"
-import { successResponseSchema } from "@app/common/schemas/basic/schema"
 import { userSchema, usersSchema } from "@app/common/schemas/user/schema"
+import { UserCreateType } from "@app/common/schemas/user/types"
 import {
   BadRequestException,
   Body,
@@ -24,10 +23,7 @@ import { UserService } from "./user.service"
 @ApiTags("Users")
 @Controller("users")
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly rmqService: RmqService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post()
   @ApiOkResponse({ description: "User created successfully", schema: zodToOpenAPI(userSchema) })
@@ -54,32 +50,30 @@ export class UserController {
   }
 
   @Delete(":id")
-  @ApiOkResponse({
-    description: "User deleted successfully",
-    schema: zodToOpenAPI(successResponseSchema),
-  })
+  @ApiOkResponse({ description: "User deleted successfully" })
   async remove(@Param("id") id: string) {
     await this.userService.remove(id)
-    return { message: "User deleted successfully" }
+    return null
   }
 
   // RMQ
   @EventPattern("user.find.email")
-  async findUserByEmail(@Payload() data: any) {
+  async findUserByEmail(@Payload() data: { email: string }) {
+    console.log("email", data)
     const user = await this.userService.findOneByEmail(data.email)
     if (!user) throw new RpcException(new NotFoundException("User not found"))
     return user
   }
 
   @EventPattern("user.find.id")
-  async findUserById(@Payload() data: any) {
+  async findUserById(@Payload() data: { id: string }) {
     const user = await this.userService.findOne(data.id).catch(() => null)
     if (!user) throw new RpcException(new NotFoundException("User not found"))
     return user
   }
 
   @EventPattern("user.create")
-  async createUser(@Payload() data: any) {
+  async createUser(@Payload() data: UserCreateType) {
     const user = await this.userService.create(data).catch(() => {
       throw new RpcException(new BadRequestException("Email already used"))
     })

@@ -1,7 +1,5 @@
-import { PrismaModule } from "@app/common"
-import { AppAuthModule } from "@app/common/auth/auth.module"
+import { CommonModule } from "@app/common"
 import { RmqModule } from "@app/common/rmq/rmq.module"
-import { AppThrottlerModule } from "@app/common/throttler/throttler.module"
 import { Module } from "@nestjs/common"
 import { ConfigModule } from "@nestjs/config"
 import * as joi from "joi"
@@ -19,10 +17,8 @@ import { UserService } from "./user.service"
       }),
       envFilePath: "./apps/user/.env",
     }),
-    PrismaModule,
     RmqModule,
-    AppAuthModule,
-    AppThrottlerModule,
+    CommonModule,
   ],
   controllers: [UserController],
   providers: [UserService],
