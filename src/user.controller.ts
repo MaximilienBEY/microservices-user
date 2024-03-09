@@ -1,3 +1,4 @@
+import { Public } from "@app/common/auth/user.decorator"
 import { userSchema, usersSchema } from "@app/common/schemas/user/schema"
 import { UserCreateType, UserUpdateType } from "@app/common/schemas/user/types"
 import {
@@ -13,6 +14,7 @@ import {
 } from "@nestjs/common"
 import { EventPattern, Payload, RpcException } from "@nestjs/microservices"
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { HealthCheck, HealthCheckService } from "@nestjs/terminus"
 import { zodToOpenAPI } from "nestjs-zod"
 
 import { CreateUserDto } from "./dto/create-user.dto"
@@ -22,7 +24,17 @@ import { UserService } from "./user.service"
 @ApiTags("Users")
 @Controller("users")
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly health: HealthCheckService,
+  ) {}
+
+  @Public()
+  @Get("health")
+  @HealthCheck()
+  check() {
+    return this.health.check([])
+  }
 
   @Post()
   @ApiOkResponse({ description: "User created successfully", schema: zodToOpenAPI(userSchema) })
