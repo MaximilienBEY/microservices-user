@@ -45,6 +45,12 @@ export class UserService {
   async findOneByEmail(email: string): Promise<User | null> {
     return this.prisma.user.findFirst({ where: { email } })
   }
+  async findAdmins() {
+    return this.prisma.user.findMany({
+      where: { role: "ADMIN" },
+      select: selectedFields,
+    })
+  }
   async create(body: UserCreateType) {
     const hashedPassword = await this.hashPassword(body.password)
     return this.prisma.user

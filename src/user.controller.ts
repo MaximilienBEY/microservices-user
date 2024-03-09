@@ -1,6 +1,5 @@
-import { UserMeUpdateType } from "@app/common/schemas/auth/types"
 import { userSchema, usersSchema } from "@app/common/schemas/user/schema"
-import { UserCreateType } from "@app/common/schemas/user/types"
+import { UserCreateType, UserUpdateType } from "@app/common/schemas/user/types"
 import {
   BadRequestException,
   Body,
@@ -65,6 +64,13 @@ export class UserController {
     return user
   }
 
+  @EventPattern("user.check.admin")
+  async checkAdmin() {
+    const admins = await this.userService.findAdmins()
+    if (admins.length === 0) return false
+    return true
+  }
+
   @EventPattern("user.find.id")
   async findUserById(@Payload() data: { id: string }) {
     const user = await this.userService.findOne(data.id).catch(() => null)
@@ -81,7 +87,7 @@ export class UserController {
   }
 
   @EventPattern("user.update")
-  async updateUser(@Payload() { id, data }: { id: string; data: UserMeUpdateType }) {
+  async updateUser(@Payload() { id, data }: { id: string; data: UserUpdateType }) {
     const user = await this.userService.update(id, data)
     return user
   }
