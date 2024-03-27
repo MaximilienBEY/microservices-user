@@ -1,4 +1,4 @@
-import { Public } from "@app/common/auth/user.decorator"
+import { Admin, Public } from "@app/common/auth/user.decorator"
 import { userSchema, usersSchema } from "@app/common/schemas/user/schema"
 import { UserCreateType, UserUpdateType } from "@app/common/schemas/user/types"
 import {
@@ -37,30 +37,35 @@ export class UserController {
   }
 
   @Post()
+  @Admin()
   @ApiOkResponse({ description: "User created successfully", schema: zodToOpenAPI(userSchema) })
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto)
   }
 
   @Get()
+  @Admin()
   @ApiOkResponse({ description: "Users found successfully", schema: zodToOpenAPI(usersSchema) })
   findAll() {
     return this.userService.findAll()
   }
 
   @Get(":id")
+  @Admin()
   @ApiOkResponse({ description: "User found successfully", schema: zodToOpenAPI(userSchema) })
   findOne(@Param("id") id: string) {
     return this.userService.findOne(id)
   }
 
   @Patch(":id")
+  @Admin()
   @ApiOkResponse({ description: "User updated successfully", schema: zodToOpenAPI(userSchema) })
   update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto)
   }
 
   @Delete(":id")
+  @Admin()
   @ApiOkResponse({ description: "User deleted successfully" })
   async remove(@Param("id") id: string) {
     await this.userService.remove(id)
@@ -70,7 +75,6 @@ export class UserController {
   // RMQ
   @EventPattern("user.find.email")
   async findUserByEmail(@Payload() data: { email: string }) {
-    console.log("email", data)
     const user = await this.userService.findOneByEmail(data.email)
     if (!user) throw new RpcException(new NotFoundException("User not found"))
     return user
